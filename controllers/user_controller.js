@@ -1,5 +1,5 @@
 const asyncHandler = require("../middleware/async.js");
-const User = require("../models/user_model");
+const User = require("../models/user_model.js");
 const path = require("path");
 const fs = require("fs");
 
