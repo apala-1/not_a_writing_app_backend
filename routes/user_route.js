@@ -6,12 +6,14 @@ const {
   createUser,
   loginUser,
   getAllUsers,
-  getUserById
+  getUserById,
+  updateUser
 } = require("../controllers/user_controller");
 
 router.post("/", createUser);       // Register
 router.post("/login", loginUser);   // Login
 router.get("/", protect, getAllUsers);
 router.get("/:id", getUserById);
+router.put("/:id", protect, updateUser);
 
 module.exports = router;

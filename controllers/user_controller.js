@@ -67,7 +67,38 @@ exports.getUserById = asyncHandler(async(req, res) => {
 
 
 // update user
+exports.updateUser = asyncHandler(async(req, res) => {
+  const { name, email, password, profilePicture } = req.body;
 
+  const user = await User.findById(req.params.id);
+
+  if(!user) {
+    return res.status(404).json({ message: "Student not found" });
+  }
+
+  // authorization check to make sure user is updating own profille
+  if(user._id.toString() !== req.user._id.toString()) {
+    return res.status(403).json({
+      message: "Not authorized to update this student profile"
+    });
+  }
+
+    // Update the student fields
+    user.name = name || user.name;
+    user.email = email || user.email;
+    user.profilePicture = profilePicture || user.profilePicture;
+
+    if(password){
+      user.password = password;
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      data: user,
+    });
+});
 
 // delete user
 
