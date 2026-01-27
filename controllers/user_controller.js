@@ -5,7 +5,7 @@ const User = require("../models/user_model");
 // @route   POST /api/users
 // @access  Public
 exports.createUser = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, profilePicture } = req.body;
 
   // Check if email exists
   const existingEmail = await User.findOne({ email });
@@ -13,7 +13,7 @@ exports.createUser = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Email already exists" });
   }
 
-  const user = await User.create({ name, email, password });
+  const user = await User.create({ name, email, password, profilePicture: profilePicture || "default-picture.png" });
 
   const userResponse = user.toObject();
   delete userResponse.password;
@@ -39,6 +39,41 @@ exports.loginUser = asyncHandler(async (req, res) => {
 
   sendTokenResponse(user, 200, res);
 });
+
+// get all users
+exports.getAllUsers = asyncHandler(async(req, res) => {
+  const users = await User.find();
+
+  res.status(200).json({
+    success: true,
+    count: users.length,
+    data: users,
+  });
+});
+
+// get user by ID
+exports.getUserById = asyncHandler(async(req, res) => {
+  const user = await User.findById(req.params.id);
+
+  if(!user) {
+    return res.status(404).json({message: "Student not found"});
+  }
+
+  res.status(200).json({
+    success: true,
+    data: user,
+  });
+});
+
+
+// update user
+
+
+// delete user
+
+
+// upload profile picture
+
 
 // Helper: send token response
 const sendTokenResponse = (user, statusCode, res) => {
