@@ -25,6 +25,15 @@ const userSchema = new mongoose.Schema({
     minlength: 6,
     select: false, // Don't include password in queries by default
   },
+  profilePicture: {
+    type: String,
+    default: "default-profile.png",
+    trim: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 // Encrypt password using bcrypt before saving
