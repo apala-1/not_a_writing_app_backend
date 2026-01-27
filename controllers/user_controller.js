@@ -56,7 +56,7 @@ exports.getUserById = asyncHandler(async(req, res) => {
   const user = await User.findById(req.params.id);
 
   if(!user) {
-    return res.status(404).json({message: "Student not found"});
+    return res.status(404).json({message: "User not found"});
   }
 
   res.status(200).json({
@@ -73,13 +73,13 @@ exports.updateUser = asyncHandler(async(req, res) => {
   const user = await User.findById(req.params.id);
 
   if(!user) {
-    return res.status(404).json({ message: "Student not found" });
+    return res.status(404).json({ message: "User not found" });
   }
 
   // authorization check to make sure user is updating own profille
   if(user._id.toString() !== req.user._id.toString()) {
     return res.status(403).json({
-      message: "Not authorized to update this student profile"
+      message: "Not authorized to update this user profile"
     });
   }
 
@@ -101,7 +101,39 @@ exports.updateUser = asyncHandler(async(req, res) => {
 });
 
 // delete user
+exports.deleteUser = asyncHandler(async(req, res) => {
+  const user = await User.findById(req.params.id);
 
+  if(!user) {
+    return res.status(404).json({message: "User not found"});
+  }
+
+  // Authorization
+  if (user._id.toString() !== req.user._id.toString()) {
+    return res.status(403).json({
+      message: "Not authorized to delete this user profile"
+    });
+  }
+
+  if(user.profilePicture &&
+    user.profilePicture !== "default-picture.png"
+  ){
+    const profilePicturePath = path.join(
+      __dirname,
+      "../public/profile_pictures",
+      user.profilePicture
+    );
+    if(fs.existsSync(profilePicturePath)){
+      fs.unlinkSync(profilePicturePath);
+    }
+  }
+  await User.findByIdAndDelete(req.params.id);
+
+  res.status(200).json({
+    success: true,
+    message: "User deleted successfully",
+  });
+});
 
 // upload profile picture
 
