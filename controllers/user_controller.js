@@ -136,7 +136,22 @@ exports.deleteUser = asyncHandler(async(req, res) => {
 });
 
 // upload profile picture
+exports.uploadProfilePicture = asyncHandler(async(req, res, next) => {
+  if(!req.file){
+    return res.ststus(400).send({message: "Please upload a file"});
+  }
 
+  // to check file size ani send error msg
+  if(req.file.size > process.env.MAX_FILE_UPLOAD){
+    return res.status(400).send({
+      message: `Please upload an image less than ${process.env.MAX_FILE_UPLOAD} bytes`
+    });
+  }
+  res.status(200).json({
+    success: true,
+    data: req.file.filename,
+  });
+});
 
 // Helper: send token response
 const sendTokenResponse = (user, statusCode, res) => {
