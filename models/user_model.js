@@ -27,13 +27,14 @@ const userSchema = new mongoose.Schema({
   },
   profilePicture: {
     type: String,
-    default: "default-profile.png",
+    default: "default-picture.png",
     trim: true,
   },
   createdAt: {
     type: Date,
     default: Date.now,
-  },
+  }
+  
 });
 
 // Encrypt password using bcrypt before saving
