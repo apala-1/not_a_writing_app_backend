@@ -10,7 +10,8 @@ const {
   getUserById,
   updateUser,
   deleteUser,
-  uploadProfilePicture
+  uploadProfilePicture,
+  getMe
 } = require("../controllers/user_controller");
 
 router.post("/upload", upload.single("profilePicture"), uploadProfilePicture);
@@ -21,5 +22,6 @@ router.get("/", protect, getAllUsers);
 router.get("/:id", getUserById);
 router.put("/:id", protect, updateUser);
 router.delete("/:id", protect, deleteUser);
+router.get("/me", protect, getMe);
 
 module.exports = router;
