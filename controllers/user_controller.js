@@ -153,6 +153,26 @@ exports.uploadProfilePicture = asyncHandler(async(req, res, next) => {
   });
 });
 
+// @desc    Get current logged-in user
+// @route   GET /api/users/me
+// @access  Private
+exports.getMe = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user.id);
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const userResponse = user.toObject();
+  delete userResponse.password;
+
+  res.status(200).json({
+    success: true,
+    data: userResponse,
+  });
+});
+
+
 // Helper: send token response
 const sendTokenResponse = (user, statusCode, res) => {
   const token = user.getSignedJwtToken();
