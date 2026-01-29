@@ -5,16 +5,14 @@ const User = require("../models/user_model");
 // @route   POST /api/users
 // @access  Public
 exports.createUser = asyncHandler(async (req, res) => {
-  const { name, email, password, profilePicture } = req.body;
-
+  const { name, email, password, profilePicture, bio, occupation } = req.body;
   // Check if email exists
   const existingEmail = await User.findOne({ email });
   if (existingEmail) {
     return res.status(400).json({ message: "Email already exists" });
   }
 
-  const user = await User.create({ name, email, password, profilePicture: profilePicture || "default-picture.png" });
-
+  const user = await User.create({ name, email, password, profilePicture: profilePicture || "default-picture.png", bio: bio || "", occupation: occupation || "" });
   const userResponse = user.toObject();
   delete userResponse.password;
 
@@ -68,7 +66,7 @@ exports.getUserById = asyncHandler(async(req, res) => {
 
 // update user
 exports.updateUser = asyncHandler(async(req, res) => {
-  const { name, email, password, profilePicture } = req.body;
+  const { name, email, password, profilePicture, bio, occupation } = req.body;
 
   const user = await User.findById(req.params.id);
 
@@ -87,6 +85,8 @@ exports.updateUser = asyncHandler(async(req, res) => {
     user.name = name || user.name;
     user.email = email || user.email;
     user.profilePicture = profilePicture || user.profilePicture;
+    user.bio = bio || user.bio;
+    user.occupation = occupation || user.occupation;
 
     if(password){
       user.password = password;

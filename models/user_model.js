@@ -30,6 +30,16 @@ const userSchema = new mongoose.Schema({
     default: "default-picture.png",
     trim: true,
   },
+  bio:{
+    type: String,
+    default: "",
+    trim: true,
+  },
+  occupation: {
+    type: String, 
+    default: "",
+    trim: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
