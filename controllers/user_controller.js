@@ -1,5 +1,7 @@
 const asyncHandler = require("../middleware/async");
 const User = require("../models/user_model");
+const path = require("path");
+const fs = require("fs");
 
 // @desc    Register user
 // @route   POST /api/users
@@ -66,39 +68,40 @@ exports.getUserById = asyncHandler(async(req, res) => {
 
 // update user
 exports.updateUser = asyncHandler(async(req, res) => {
-  const { name, email, password, profilePicture, bio, occupation } = req.body;
-
+  const { name, email, password, bio, occupation } = req.body;
   const user = await User.findById(req.params.id);
 
-  if(!user) {
-    return res.status(404).json({ message: "User not found" });
-  }
+  if(!user) return res.status(404).json({ message: "User not found" });
 
-  // authorization check to make sure user is updating own profille
   if(user._id.toString() !== req.user._id.toString()) {
-    return res.status(403).json({
-      message: "Not authorized to update this user profile"
-    });
+    return res.status(403).json({ message: "Not authorized" });
   }
 
-    // Update the student fields
-    user.name = name || user.name;
-    user.email = email || user.email;
-    user.profilePicture = profilePicture || user.profilePicture;
-    user.bio = bio || user.bio;
-    user.occupation = occupation || user.occupation;
+  // Update fields
+  user.name = name || user.name;
+  user.email = email || user.email;
+  user.bio = bio || user.bio;
+  user.occupation = occupation || user.occupation;
+  if(password) user.password = password;
 
-    if(password){
-      user.password = password;
+  // Multer file
+  if(req.file){
+    // delete old file
+    if(user.profilePicture && user.profilePicture !== "default-picture.png"){
+      const oldImagePath = path.join(__dirname, "../public/profile_pictures", user.profilePicture.split("/").pop());
+      if(fs.existsSync(oldImagePath)) fs.unlinkSync(oldImagePath);
     }
+    user.profilePicture = `/profile_pictures/${req.file.filename}`; 
+  }
 
-    await user.save();
+  await user.save();
 
-    res.status(200).json({
-      success: true,
-      data: user,
-    });
+  res.status(200).json({
+    success: true,
+    data: user
+  });
 });
+
 
 // delete user
 exports.deleteUser = asyncHandler(async(req, res) => {
