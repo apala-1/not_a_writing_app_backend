@@ -93,8 +93,10 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // ✅ Only User Routes
 const userRoutes = require("./routes/user_route");
+const adminRoutes = require("./routes/admin_route");
 app.use("/api/v1/users/login", authLimiter); // stricter rate limit for login
 app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/admin/users", adminRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

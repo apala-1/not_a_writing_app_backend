@@ -14,7 +14,7 @@ exports.createUser = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Email already exists" });
   }
 
-  const user = await User.create({ name, email, password, profilePicture: profilePicture || "default-picture.png", bio: bio || "", occupation: occupation || "" });
+  const user = await User.create({ name, email, password, profilePicture: profilePicture || "default-picture.png", bio: bio || "", occupation: occupation || "", role: "user" });
   const userResponse = user.toObject();
   delete userResponse.password;
 
@@ -73,7 +73,8 @@ exports.updateUser = asyncHandler(async(req, res) => {
 
   if(!user) return res.status(404).json({ message: "User not found" });
 
-  if(user._id.toString() !== req.user._id.toString()) {
+  // Allow admins to update any user
+  if(user._id.toString() !== req.user._id.toString() && req.user.role !== "admin") {
     return res.status(403).json({ message: "Not authorized" });
   }
 
@@ -111,12 +112,13 @@ exports.deleteUser = asyncHandler(async(req, res) => {
     return res.status(404).json({message: "User not found"});
   }
 
-  // Authorization
-  if (user._id.toString() !== req.user._id.toString()) {
-    return res.status(403).json({
-      message: "Not authorized to delete this user profile"
-    });
-  }
+  // Authorization: allow admin or the user themselves
+if (user._id.toString() !== req.user._id.toString() && req.user.role !== "admin") {
+  return res.status(403).json({
+    message: "Not authorized to delete this user profile"
+  });
+}
+
 
   if(user.profilePicture &&
     user.profilePicture !== "default-picture.png"
@@ -160,8 +162,11 @@ exports.uploadProfilePicture = asyncHandler(async(req, res, next) => {
 // @route   GET /api/users/me
 // @access  Private
 exports.getMe = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user.id);
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: "Not logged in or invalid token" });
+  }
 
+  const user = await User.findById(req.user.id);
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   }
@@ -173,6 +178,41 @@ exports.getMe = asyncHandler(async (req, res) => {
     success: true,
     data: userResponse,
   });
+});
+
+// update logged-in user
+exports.updateMe = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  const { name, email, password, bio, occupation } = req.body;
+
+  // Update fields
+  user.name = name || user.name;
+  user.email = email || user.email;
+  user.bio = bio || user.bio;
+  user.occupation = occupation || user.occupation;
+  if (password) user.password = password;
+
+  // Multer file
+  if (req.file) {
+    const oldImagePath = path.join(
+      __dirname,
+      "../public/profile_pictures",
+      user.profilePicture.split("/").pop()
+    );
+    if (fs.existsSync(oldImagePath) && user.profilePicture !== "default-picture.png")
+      fs.unlinkSync(oldImagePath);
+
+    user.profilePicture = `/profile_pictures/${req.file.filename}`;
+  }
+
+  await user.save();
+
+  const userResponse = user.toObject();
+  delete userResponse.password;
+
+  res.status(200).json({ success: true, data: userResponse });
 });
 
 
